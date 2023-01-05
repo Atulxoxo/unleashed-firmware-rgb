@@ -12,12 +12,12 @@ You can download the firmware [here](https://cloud.quenon.ru/index.php/s/cThZsaS
 # How to install
 ## Install from computer
 1) Connect Flipper to your computer via USB. Unlock Flipper if pin code is set.
-2) Go to [web installer](https://lab.flipper.net/?url=https://cloud.quenon.ru/RGB-FW/unleashed/flipper-z-f7-update-release-latest.tgz&channel=RGB&version=Unleashed-RGB-latest).
+2) Go to [web installer](https://lab.flipper.net/?url=https://cloud.quenon.ru/RGB-FW/unleashed/flipper-z-f7-update-unleashed-latest.tgz&channel=RGB&version=Unleashed-RGB-latest).
 3) If the flipper does not automatically connect, click "Connect".
 4) Click "Install" and wait for the installation to complete.
 
 ## Install from your phone
-1) Download latest [firmware release](https://cloud.quenon.ru/index.php/s/cThZsaSw7llCYrG/download?path=%2Funleashed&files=flipper-z-f7-update-0.74.2-RGB-RGB-release.tgz).
+1) Download latest [firmware release](https://cloud.quenon.ru/index.php/s/cThZsaSw7llCYrG/download?path=%2Funleashed&files=flipper-z-f7-update-unleashed-latest.tgz).
 2) Open the Flipper app and connect to the device.
 3) In Update Channel, select Custom.
 4) Click "Choose file" and select the downloaded firmware file.
