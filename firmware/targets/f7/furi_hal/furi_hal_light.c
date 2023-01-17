@@ -44,8 +44,9 @@ void furi_hal_light_set(Light light, uint8_t value) {
         }
         if(light & LightBlue) {
             lp5562_set_channel_value(&furi_hal_i2c_handle_power, LP5562ChannelBlue, value);
-	}
+		}
 	furi_hal_i2c_release(&furi_hal_i2c_handle_power);
+	}
 }
 
 void furi_hal_light_blink_start(Light light, uint8_t brightness, uint16_t on_time, uint16_t period) {
