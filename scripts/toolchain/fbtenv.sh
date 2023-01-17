@@ -107,10 +107,7 @@ fbtenv_get_kernel_type()
 {
     SYS_TYPE="$(uname -s)";
     ARCH_TYPE="$(uname -m)";
-    if [ "$ARCH_TYPE" != "x86_64" ] && [ "$SYS_TYPE" != "Darwin" ]; then
-        echo "We only provide toolchain for x86_64 CPUs, sorry..";
-        return 1;
-    fi
+
     if [ "$SYS_TYPE" = "Darwin" ]; then
         fbtenv_check_rosetta || return 1;
         TOOLCHAIN_ARCH_DIR="$FBT_TOOLCHAIN_PATH/toolchain/x86_64-darwin";
@@ -289,9 +286,9 @@ fbtenv_main()
     fbtenv_check_script_path || return 1;
     fbtenv_check_download_toolchain || return 1;
     fbtenv_set_shell_prompt;
-    PATH="$TOOLCHAIN_ARCH_DIR/python/bin:$PATH";
+    #PATH="$TOOLCHAIN_ARCH_DIR/python/bin:$PATH";
     PATH="$TOOLCHAIN_ARCH_DIR/bin:$PATH";
-    PATH="$TOOLCHAIN_ARCH_DIR/protobuf/bin:$PATH";
+    #PATH="$TOOLCHAIN_ARCH_DIR/protobuf/bin:$PATH";
     PATH="$TOOLCHAIN_ARCH_DIR/openocd/bin:$PATH";
     
     SAVED_PYTHONNOUSERSITE="${PYTHONNOUSERSITE:-""}";
