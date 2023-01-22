@@ -37,14 +37,12 @@ typedef struct {
     uint8_t blue;
 } WS2812B_Color;
 
-#define LED_PIN &gpio_ext_pa7
+#define LED_PIN &led_pin
+#define DEBUG_PIN &gpio_ext_pa7
 #define WS2812B_LEDS 3
 
 void rgb_backlight_save_settings(void);
-
 void rgb_backlight_update(uint8_t backlight);
-
-void rgb_backlight_set_color(uint8_t color_index);
 void rgb_backlight_set_color(uint8_t color_index);
 
 RGBBacklightSettings* rgb_backlight_get_settings(void);

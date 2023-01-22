@@ -44,7 +44,7 @@ extern const size_t input_pins_count;
 extern const GpioPin vibro_gpio;
 extern const GpioPin ibutton_gpio;
 
-extern const GpioPin gpio_cc1101_g0;
+extern const GpioPin swd_cc1101_g0;
 extern const GpioPin gpio_rf_sw_0;
 
 extern const GpioPin gpio_subghz_cs;

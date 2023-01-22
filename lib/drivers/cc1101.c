@@ -2,13 +2,15 @@
 #include <assert.h>
 #include <string.h>
 
+#include <spi_swd.h>
+
 CC1101Status cc1101_strobe(FuriHalSpiBusHandle* handle, uint8_t strobe) {
     uint8_t tx[1] = {strobe};
     CC1101Status rx[1] = {0};
 
     while(furi_hal_gpio_read(handle->miso))
         ;
-    furi_hal_spi_bus_trx(handle, tx, (uint8_t*)rx, 1, CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, tx, (uint8_t*)rx, 1, CC1101_TIMEOUT);
 
     assert(rx[0].CHIP_RDYn == 0);
     return rx[0];
@@ -20,7 +22,7 @@ CC1101Status cc1101_write_reg(FuriHalSpiBusHandle* handle, uint8_t reg, uint8_t 
 
     while(furi_hal_gpio_read(handle->miso))
         ;
-    furi_hal_spi_bus_trx(handle, tx, (uint8_t*)rx, 2, CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, tx, (uint8_t*)rx, 2, CC1101_TIMEOUT);
 
     assert((rx[0].CHIP_RDYn | rx[1].CHIP_RDYn) == 0);
     return rx[1];
@@ -33,7 +35,7 @@ CC1101Status cc1101_read_reg(FuriHalSpiBusHandle* handle, uint8_t reg, uint8_t* 
 
     while(furi_hal_gpio_read(handle->miso))
         ;
-    furi_hal_spi_bus_trx(handle, tx, (uint8_t*)rx, 2, CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, tx, (uint8_t*)rx, 2, CC1101_TIMEOUT);
 
     assert((rx[0].CHIP_RDYn) == 0);
     *data = *(uint8_t*)&rx[1];
@@ -128,7 +130,7 @@ void cc1101_set_pa_table(FuriHalSpiBusHandle* handle, const uint8_t value[8]) {
 
     while(furi_hal_gpio_read(handle->miso))
         ;
-    furi_hal_spi_bus_trx(handle, tx, (uint8_t*)rx, sizeof(rx), CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, tx, (uint8_t*)rx, sizeof(rx), CC1101_TIMEOUT);
 
     assert((rx[0].CHIP_RDYn | rx[8].CHIP_RDYn) == 0);
 }
@@ -144,7 +146,7 @@ uint8_t cc1101_write_fifo(FuriHalSpiBusHandle* handle, const uint8_t* data, uint
     while(furi_hal_gpio_read(handle->miso))
         ;
     // Tell IC what we want
-    furi_hal_spi_bus_trx(handle, buff_tx, (uint8_t*)buff_rx, size + 1, CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, buff_tx, (uint8_t*)buff_rx, size + 1, CC1101_TIMEOUT);
 
     return size;
 }
@@ -160,7 +162,7 @@ uint8_t cc1101_read_fifo(FuriHalSpiBusHandle* handle, uint8_t* data, uint8_t* si
         ;
 
     // First byte - packet length
-    furi_hal_spi_bus_trx(handle, buff_tx, buff_rx, 2, CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, buff_tx, buff_rx, 2, CC1101_TIMEOUT);
 
     // Check that the packet is placed in the receive buffer
     if(buff_rx[1] > 64) {
@@ -168,7 +170,7 @@ uint8_t cc1101_read_fifo(FuriHalSpiBusHandle* handle, uint8_t* data, uint8_t* si
     } else {
         *size = buff_rx[1];
     }
-    furi_hal_spi_bus_trx(handle, &buff_tx[1], data, *size, CC1101_TIMEOUT);
+    swd_spi_bus_trx(handle, &buff_tx[1], data, *size, CC1101_TIMEOUT);
 
     return *size;
 }

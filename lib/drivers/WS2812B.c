@@ -31,7 +31,7 @@
 #define RGB_BACKLIGHT_SETTINGS_PATH EXT_PATH(RGB_BACKLIGHT_SETTINGS_FILE_NAME)
 
 static uint8_t WS2812B_ledbuffer[WS2812B_LEDS][3];
-
+const GpioPin led_pin = {.port = GPIOA, .pin = LL_GPIO_PIN_8};
 static RGBBacklightSettings rgb_settings = {
     .version = RGB_BACKLIGHT_SETTINGS_VERSION,
     .display_color_index = 0,
@@ -56,44 +56,57 @@ const WS2812B_Color colors[] = {
 };
 
 static void _port_init(void) {
-    furi_hal_gpio_write(LED_PIN, true);
+    furi_hal_gpio_write(LED_PIN, false);
+    //furi_hal_gpio_write(DEBUG_PIN, false);
     furi_hal_gpio_init(LED_PIN, GpioModeOutputPushPull, GpioPullNo, GpioSpeedVeryHigh);
+    furi_hal_gpio_init(DEBUG_PIN, GpioModeOutputPushPull, GpioPullNo, GpioSpeedVeryHigh);
 }
 
 void WS2812B_send(void) {
     _port_init();
     furi_kernel_lock();
+    uint32_t end;
     /* Последовательная отправка цветов светодиодов */
     for(uint8_t lednumber = 0; lednumber < WS2812B_LEDS; lednumber++) {
         //Последовательная отправка цветов светодиода
         for(uint8_t color = 0; color < 3; color++) {
             //Последовательная отправка битов цвета
-            for(uint8_t i = 7; i != 255; i--) {
-                if(WS2812B_ledbuffer[lednumber][color] & (1 << i)) {
+            uint8_t i = 0b10000000;
+            while(i != 0) {
+                if(WS2812B_ledbuffer[lednumber][color] & (i)) {
                     furi_hal_gpio_write(LED_PIN, true);
-                    uint32_t start = DWT->CYCCNT;
-                    while((DWT->CYCCNT - start) < 31) {
+                    //furi_hal_gpio_write(DEBUG_PIN, true);
+                    end = DWT->CYCCNT + 30;
+                    //T1H 600 us (615 us)
+                    while(DWT->CYCCNT < end) {
                     }
                     furi_hal_gpio_write(LED_PIN, false);
-                    start = DWT->CYCCNT;
-                    while((DWT->CYCCNT - start) < 15) {
+                    //furi_hal_gpio_write(DEBUG_PIN, false);
+                    end = DWT->CYCCNT + 26;
+                    //T1L  600 us (587 us)
+                    while(DWT->CYCCNT < end) {
                     }
                 } else {
                     furi_hal_gpio_write(LED_PIN, true);
-                    uint32_t start = DWT->CYCCNT;
-                    while((DWT->CYCCNT - start) < 15) {
+                    //furi_hal_gpio_write(DEBUG_PIN, true);
+                    end = DWT->CYCCNT + 11;
+                    //T0H 300 ns (312 ns)
+                    while(DWT->CYCCNT < end) {
                     }
                     furi_hal_gpio_write(LED_PIN, false);
-                    start = DWT->CYCCNT;
-                    while((DWT->CYCCNT - start) < 31) {
+                    //furi_hal_gpio_write(DEBUG_PIN, false);
+                    end = DWT->CYCCNT + 43;
+                    //T0L 900 ns (890 ns)
+                    while(DWT->CYCCNT < end) {
                     }
                 }
+                i >>= 1;
             }
         }
     }
-    furi_kernel_unlock();
-    //Необходимая задержка - признак окончания передачи
+    //Trst - признак окончания передачи
     furi_delay_us(100);
+    furi_kernel_unlock();
 }
 
 uint8_t rgb_backlight_get_color_count(void) {
@@ -105,8 +118,6 @@ const char* rgb_backlight_get_color_text(uint8_t index) {
 }
 
 static void rgb_backlight_load_settings(void) {
-    _port_init();
-
     FuriHalRtcBootMode bm = furi_hal_rtc_get_boot_mode();
     if(bm == FuriHalRtcBootModeDfu) {
         rgb_settings.settings_is_loaded = true;
