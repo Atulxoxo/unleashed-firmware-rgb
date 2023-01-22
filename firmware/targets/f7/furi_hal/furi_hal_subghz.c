@@ -420,10 +420,10 @@ volatile FuriHalSubGhzCaptureCallback furi_hal_subghz_capture_callback = NULL;
 volatile void* furi_hal_subghz_capture_callback_context = NULL;
 
 static void furi_hal_subghz_capture_ISR() {
+    uint32_t CNT = TIM2->CNT;
     // Channel 1
-    if(LL_TIM_IsActiveFlag_CC1(TIM2)) {
-        LL_TIM_ClearFlag_CC1(TIM2);
-        furi_hal_subghz_capture_delta_duration = LL_TIM_IC_GetCaptureCH1(TIM2);
+    if(!furi_hal_gpio_read(&gpio_cc1101_g0)) {
+        furi_hal_subghz_capture_delta_duration = CNT;
         if(furi_hal_subghz_capture_callback) {
             if(furi_hal_subghz.async_mirror_pin != NULL)
                 furi_hal_gpio_write(furi_hal_subghz.async_mirror_pin, false);
@@ -433,20 +433,18 @@ static void furi_hal_subghz_capture_ISR() {
                 furi_hal_subghz_capture_delta_duration,
                 (void*)furi_hal_subghz_capture_callback_context);
         }
-    }
-    // Channel 2
-    if(LL_TIM_IsActiveFlag_CC2(TIM2)) {
-        LL_TIM_ClearFlag_CC2(TIM2);
+    } else {
         if(furi_hal_subghz_capture_callback) {
             if(furi_hal_subghz.async_mirror_pin != NULL)
                 furi_hal_gpio_write(furi_hal_subghz.async_mirror_pin, true);
 
             furi_hal_subghz_capture_callback(
                 false,
-                LL_TIM_IC_GetCaptureCH2(TIM2) - furi_hal_subghz_capture_delta_duration,
+                CNT - furi_hal_subghz_capture_delta_duration,
                 (void*)furi_hal_subghz_capture_callback_context);
         }
     }
+    TIM2->CNT = 0;
 }
 
 void furi_hal_subghz_start_async_rx(FuriHalSubGhzCaptureCallback callback, void* context) {
@@ -456,8 +454,10 @@ void furi_hal_subghz_start_async_rx(FuriHalSubGhzCaptureCallback callback, void*
     furi_hal_subghz_capture_callback = callback;
     furi_hal_subghz_capture_callback_context = context;
 
-    furi_hal_gpio_init_ex(
-        &gpio_cc1101_g0, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn1TIM2);
+    furi_hal_gpio_init(&gpio_cc1101_g0, GpioModeInterruptRiseFall, GpioPullUp, GpioSpeedVeryHigh);
+    furi_hal_gpio_add_int_callback(
+        &gpio_cc1101_g0, furi_hal_subghz_capture_ISR, furi_hal_subghz_capture_callback);
+    furi_hal_gpio_enable_int_callback(&gpio_cc1101_g0);
 
     // Timer: base
     LL_TIM_InitTypeDef TIM_InitStruct = {0};
@@ -470,33 +470,8 @@ void furi_hal_subghz_start_async_rx(FuriHalSubGhzCaptureCallback callback, void*
     // Timer: advanced
     LL_TIM_SetClockSource(TIM2, LL_TIM_CLOCKSOURCE_INTERNAL);
     LL_TIM_DisableARRPreload(TIM2);
-    LL_TIM_SetTriggerInput(TIM2, LL_TIM_TS_TI2FP2);
-    LL_TIM_SetSlaveMode(TIM2, LL_TIM_SLAVEMODE_RESET);
-    LL_TIM_SetTriggerOutput(TIM2, LL_TIM_TRGO_RESET);
-    LL_TIM_EnableMasterSlaveMode(TIM2);
     LL_TIM_DisableDMAReq_TRIG(TIM2);
     LL_TIM_DisableIT_TRIG(TIM2);
-
-    // Timer: channel 1 indirect
-    LL_TIM_IC_SetActiveInput(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_INDIRECTTI);
-    LL_TIM_IC_SetPrescaler(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
-    LL_TIM_IC_SetPolarity(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_FALLING);
-    LL_TIM_IC_SetFilter(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
-
-    // Timer: channel 2 direct
-    LL_TIM_IC_SetActiveInput(TIM2, LL_TIM_CHANNEL_CH2, LL_TIM_ACTIVEINPUT_DIRECTTI);
-    LL_TIM_IC_SetPrescaler(TIM2, LL_TIM_CHANNEL_CH2, LL_TIM_ICPSC_DIV1);
-    LL_TIM_IC_SetPolarity(TIM2, LL_TIM_CHANNEL_CH2, LL_TIM_IC_POLARITY_RISING);
-    LL_TIM_IC_SetFilter(TIM2, LL_TIM_CHANNEL_CH2, LL_TIM_IC_FILTER_FDIV32_N8);
-
-    // ISR setup
-    furi_hal_interrupt_set_isr(FuriHalInterruptIdTIM2, furi_hal_subghz_capture_ISR, NULL);
-
-    // Interrupts and channels
-    LL_TIM_EnableIT_CC1(TIM2);
-    LL_TIM_EnableIT_CC2(TIM2);
-    LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
-    LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH2);
 
     // Start timer
     LL_TIM_SetCounter(TIM2, 0);
@@ -523,7 +498,7 @@ void furi_hal_subghz_stop_async_rx() {
     furi_hal_subghz_stop_debug();
 
     FURI_CRITICAL_EXIT();
-    furi_hal_interrupt_set_isr(FuriHalInterruptIdTIM2, NULL, NULL);
+    // furi_hal_interrupt_set_isr(FuriHalInterruptIdTIM2, NULL, NULL);
 
     furi_hal_gpio_init(&gpio_cc1101_g0, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
 }
