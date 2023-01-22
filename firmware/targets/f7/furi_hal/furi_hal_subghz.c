@@ -415,23 +415,20 @@ static bool furi_hal_subghz_stop_debug() {
     return ret;
 }
 
-volatile uint32_t furi_hal_subghz_capture_delta_duration = 0;
+//volatile uint32_t furi_hal_subghz_capture_delta_duration = 0;
 volatile FuriHalSubGhzCaptureCallback furi_hal_subghz_capture_callback = NULL;
 volatile void* furi_hal_subghz_capture_callback_context = NULL;
 
 static void furi_hal_subghz_capture_ISR() {
-    uint32_t CNT = TIM2->CNT;
+    // uint32_t CNT = TIM2->CNT;
     // Channel 1
     if(!furi_hal_gpio_read(&gpio_cc1101_g0)) {
-        furi_hal_subghz_capture_delta_duration = CNT;
         if(furi_hal_subghz_capture_callback) {
             if(furi_hal_subghz.async_mirror_pin != NULL)
                 furi_hal_gpio_write(furi_hal_subghz.async_mirror_pin, false);
 
             furi_hal_subghz_capture_callback(
-                true,
-                furi_hal_subghz_capture_delta_duration,
-                (void*)furi_hal_subghz_capture_callback_context);
+                true, TIM2->CNT, (void*)furi_hal_subghz_capture_callback_context);
         }
     } else {
         if(furi_hal_subghz_capture_callback) {
@@ -439,9 +436,7 @@ static void furi_hal_subghz_capture_ISR() {
                 furi_hal_gpio_write(furi_hal_subghz.async_mirror_pin, true);
 
             furi_hal_subghz_capture_callback(
-                false,
-                CNT - furi_hal_subghz_capture_delta_duration,
-                (void*)furi_hal_subghz_capture_callback_context);
+                false, TIM2->CNT, (void*)furi_hal_subghz_capture_callback_context);
         }
     }
     TIM2->CNT = 0;
