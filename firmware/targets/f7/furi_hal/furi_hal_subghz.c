@@ -585,6 +585,7 @@ static void furi_hal_subghz_async_tx_dma_isr() {
 }
 
 static void furi_hal_subghz_async_tx_timer_isr() {
+    //furi_hal_gpio_write(&gpio_cc1101_g0, !furi_hal_gpio_read(&gpio_cc1101_g0));
     if(LL_TIM_IsActiveFlag_UPDATE(TIM2)) {
         LL_TIM_ClearFlag_UPDATE(TIM2);
         if(LL_TIM_GetAutoReload(TIM2) == 0) {
@@ -621,9 +622,8 @@ bool furi_hal_subghz_start_async_tx(FuriHalSubGhzAsyncTxCallback callback, void*
     furi_hal_subghz_async_tx.buffer =
         malloc(API_HAL_SUBGHZ_ASYNC_TX_BUFFER_FULL * sizeof(uint32_t));
 
-    // Connect CC1101_GD0 to TIM2 as output
-    furi_hal_gpio_init_ex(
-        &gpio_cc1101_g0, GpioModeAltFunctionPushPull, GpioPullDown, GpioSpeedLow, GpioAltFn1TIM2);
+    furi_hal_gpio_write(&gpio_cc1101_g0, true);
+    furi_hal_gpio_init(&gpio_cc1101_g0, GpioModeOutputPushPull, GpioPullDown, GpioSpeedVeryHigh);
 
     // Configure DMA
     LL_DMA_InitTypeDef dma_config = {0};
@@ -684,8 +684,8 @@ bool furi_hal_subghz_start_async_tx(FuriHalSubGhzAsyncTxCallback callback, void*
     LL_TIM_EnableCounter(TIM2);
 
     // Start debug
-    if(furi_hal_subghz_start_debug()) {
-        const GpioPin* gpio = furi_hal_subghz.async_mirror_pin;
+    if(1) {
+        const GpioPin* gpio = &gpio_cc1101_g0;
         furi_hal_subghz_debug_gpio_buff[0] = (uint32_t)gpio->pin << GPIO_NUMBER;
         furi_hal_subghz_debug_gpio_buff[1] = gpio->pin;
 
