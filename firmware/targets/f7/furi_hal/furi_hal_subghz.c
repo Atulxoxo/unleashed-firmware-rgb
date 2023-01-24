@@ -415,13 +415,10 @@ static bool furi_hal_subghz_stop_debug() {
     return ret;
 }
 
-//volatile uint32_t furi_hal_subghz_capture_delta_duration = 0;
 volatile FuriHalSubGhzCaptureCallback furi_hal_subghz_capture_callback = NULL;
 volatile void* furi_hal_subghz_capture_callback_context = NULL;
 
 static void furi_hal_subghz_capture_ISR() {
-    // uint32_t CNT = TIM2->CNT;
-    // Channel 1
     if(!furi_hal_gpio_read(&gpio_cc1101_g0)) {
         if(furi_hal_subghz_capture_callback) {
             if(furi_hal_subghz.async_mirror_pin != NULL)
@@ -439,7 +436,8 @@ static void furi_hal_subghz_capture_ISR() {
                 false, TIM2->CNT, (void*)furi_hal_subghz_capture_callback_context);
         }
     }
-    TIM2->CNT = 0;
+    //Forced correction for improved accuracy
+    TIM2->CNT = 9;
 }
 
 void furi_hal_subghz_start_async_rx(FuriHalSubGhzCaptureCallback callback, void* context) {
@@ -623,7 +621,7 @@ bool furi_hal_subghz_start_async_tx(FuriHalSubGhzAsyncTxCallback callback, void*
         malloc(API_HAL_SUBGHZ_ASYNC_TX_BUFFER_FULL * sizeof(uint32_t));
 
     furi_hal_gpio_write(&gpio_cc1101_g0, true);
-    furi_hal_gpio_init(&gpio_cc1101_g0, GpioModeOutputPushPull, GpioPullDown, GpioSpeedVeryHigh);
+    furi_hal_gpio_init(&gpio_cc1101_g0, GpioModeOutputPushPull, GpioPullNo, GpioSpeedVeryHigh);
 
     // Configure DMA
     LL_DMA_InitTypeDef dma_config = {0};
@@ -683,27 +681,25 @@ bool furi_hal_subghz_start_async_tx(FuriHalSubGhzAsyncTxCallback callback, void*
     LL_TIM_SetCounter(TIM2, 0);
     LL_TIM_EnableCounter(TIM2);
 
-    // Start debug
-    if(1) {
-        const GpioPin* gpio = &gpio_cc1101_g0;
-        furi_hal_subghz_debug_gpio_buff[0] = (uint32_t)gpio->pin << GPIO_NUMBER;
-        furi_hal_subghz_debug_gpio_buff[1] = gpio->pin;
+    //Signal generation for external G0
+    const GpioPin* gpio = &gpio_cc1101_g0;
+    furi_hal_subghz_debug_gpio_buff[0] = (uint32_t)gpio->pin << GPIO_NUMBER;
+    furi_hal_subghz_debug_gpio_buff[1] = gpio->pin;
 
-        dma_config.MemoryOrM2MDstAddress = (uint32_t)furi_hal_subghz_debug_gpio_buff;
-        dma_config.PeriphOrM2MSrcAddress = (uint32_t) & (gpio->port->BSRR);
-        dma_config.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
-        dma_config.Mode = LL_DMA_MODE_CIRCULAR;
-        dma_config.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
-        dma_config.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
-        dma_config.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD;
-        dma_config.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_WORD;
-        dma_config.NbData = 2;
-        dma_config.PeriphRequest = LL_DMAMUX_REQ_TIM2_UP;
-        dma_config.Priority = LL_DMA_PRIORITY_VERYHIGH;
-        LL_DMA_Init(DMA1, LL_DMA_CHANNEL_2, &dma_config);
-        LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, 2);
-        LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
-    }
+    dma_config.MemoryOrM2MDstAddress = (uint32_t)furi_hal_subghz_debug_gpio_buff;
+    dma_config.PeriphOrM2MSrcAddress = (uint32_t) & (gpio->port->BSRR);
+    dma_config.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
+    dma_config.Mode = LL_DMA_MODE_CIRCULAR;
+    dma_config.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
+    dma_config.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
+    dma_config.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD;
+    dma_config.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_WORD;
+    dma_config.NbData = 2;
+    dma_config.PeriphRequest = LL_DMAMUX_REQ_TIM2_UP;
+    dma_config.Priority = LL_DMA_PRIORITY_VERYHIGH;
+    LL_DMA_Init(DMA1, LL_DMA_CHANNEL_2, &dma_config);
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, 2);
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
 
     return true;
 }
