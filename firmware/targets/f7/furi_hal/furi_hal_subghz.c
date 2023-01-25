@@ -26,6 +26,7 @@ typedef struct {
     const GpioPin* async_mirror_pin;
     bool ext_cc1101;
     const GpioPin* cc1101_g0_pin;
+
 } FuriHalSubGhz;
 
 volatile FuriHalSubGhz furi_hal_subghz = {
@@ -37,10 +38,13 @@ volatile FuriHalSubGhz furi_hal_subghz = {
     .cc1101_g0_pin = &gpio_cc1101_g0,
 };
 
-void furi_hal_subghz_ext_set(bool state) {
-    furi_hal_subghz_shutdown();
+const GpioPin* furi_hal_subghz_get_g0_pin(void) {
+    return furi_hal_subghz.cc1101_g0_pin;
+}
 
+void furi_hal_subghz_ext_set(bool state) {
     furi_hal_subghz.ext_cc1101 = state;
+    furi_hal_spi_bus_handle_deinit(&furi_hal_spi_bus_handle_subghz);
     if(state) {
         furi_hal_subghz.cc1101_g0_pin = &gpio_cc1101_g0_ext;
         memcpy(
@@ -54,8 +58,11 @@ void furi_hal_subghz_ext_set(bool state) {
             &furi_hal_spi_bus_handle_subghz_int,
             sizeof(FuriHalSpiBusHandle));
     }
+    furi_hal_spi_bus_handle_init(&furi_hal_spi_bus_handle_subghz);
+}
 
-    furi_hal_subghz_init();
+bool furi_hal_subghz_ext_get(void) {
+    return furi_hal_subghz.ext_cc1101;
 }
 
 void furi_hal_subghz_set_async_mirror_pin(const GpioPin* pin) {
@@ -475,7 +482,9 @@ void furi_hal_subghz_start_async_rx(FuriHalSubGhzCaptureCallback callback, void*
     furi_hal_gpio_init(
         furi_hal_subghz.cc1101_g0_pin, GpioModeInterruptRiseFall, GpioPullUp, GpioSpeedVeryHigh);
     furi_hal_gpio_add_int_callback(
-        &gpio_cc1101_g0, furi_hal_subghz_capture_ISR, furi_hal_subghz_capture_callback);
+        furi_hal_subghz.cc1101_g0_pin,
+        furi_hal_subghz_capture_ISR,
+        furi_hal_subghz_capture_callback);
     furi_hal_gpio_enable_int_callback(furi_hal_subghz.cc1101_g0_pin);
 
     // Timer: base
@@ -708,7 +717,7 @@ bool furi_hal_subghz_start_async_tx(FuriHalSubGhzAsyncTxCallback callback, void*
     LL_TIM_EnableCounter(TIM2);
 
     //Signal generation for external G0
-    const GpioPin* gpio = &gpio_cc1101_g0;
+    const GpioPin* gpio = furi_hal_subghz.cc1101_g0_pin;
     furi_hal_subghz_debug_gpio_buff[0] = (uint32_t)gpio->pin << GPIO_NUMBER;
     furi_hal_subghz_debug_gpio_buff[1] = gpio->pin;
 

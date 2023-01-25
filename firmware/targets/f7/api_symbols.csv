@@ -1334,8 +1334,11 @@ Function,-,furi_hal_spi_init,void,
 Function,+,furi_hal_spi_init_early,void,
 Function,+,furi_hal_spi_release,void,FuriHalSpiBusHandle*
 Function,-,furi_hal_subghz_dump_state,void,
+Function,+,furi_hal_subghz_ext_get,_Bool,
+Function,+,furi_hal_subghz_ext_set,void,_Bool
 Function,+,furi_hal_subghz_flush_rx,void,
 Function,+,furi_hal_subghz_flush_tx,void,
+Function,+,furi_hal_subghz_get_g0_pin,const GpioPin*,
 Function,+,furi_hal_subghz_get_lqi,uint8_t,
 Function,+,furi_hal_subghz_get_rssi,float,
 Function,+,furi_hal_subghz_idle,void,

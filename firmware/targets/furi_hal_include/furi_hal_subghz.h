@@ -258,6 +258,10 @@ bool furi_hal_subghz_is_async_tx_complete();
  */
 void furi_hal_subghz_stop_async_tx();
 
+const GpioPin* furi_hal_subghz_get_g0_pin(void);
+void furi_hal_subghz_ext_set(bool state);
+bool furi_hal_subghz_ext_get(void);
+
 #ifdef __cplusplus
 }
 #endif

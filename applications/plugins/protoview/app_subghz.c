@@ -127,7 +127,8 @@ void radio_tx_signal(ProtoViewApp* app, FuriHalSubGhzAsyncTxCallback data_feeder
     uint32_t value = furi_hal_subghz_set_frequency_and_path(app->frequency);
     FURI_LOG_E(TAG, "Switched to frequency: %lu", value);
     furi_hal_gpio_write(&gpio_cc1101_g0, false);
-    furi_hal_gpio_init(&gpio_cc1101_g0, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_init(
+        &gpio_cc1101_g0, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
 
     furi_hal_subghz_start_async_tx(data_feeder, ctx);
     while(!furi_hal_subghz_is_async_tx_complete()) furi_delay_ms(10);

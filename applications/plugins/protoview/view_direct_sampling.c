@@ -22,7 +22,7 @@ void render_view_direct_sampling(Canvas* const canvas, ProtoViewApp* app) {
 
     for(int y = 0; y < 64; y++) {
         for(int x = 0; x < 128; x++) {
-            bool level = furi_hal_gpio_read(&gpio_cc1101_g0);
+            bool level = furi_hal_gpio_read(furi_hal_subghz_get_g0_pin());
             if(level) canvas_draw_dot(canvas, x, y);
             /* Busy loop: this is a terrible approach as it blocks
              * everything else, but for now it's the best we can do
