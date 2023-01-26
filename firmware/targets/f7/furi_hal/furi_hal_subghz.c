@@ -31,7 +31,7 @@ volatile FuriHalSubGhz furi_hal_subghz = {
     .cc1101_g0_pin = &gpio_cc1101_g0,
 };
 
-void furi_hal_subghz_ext_set(bool state) {
+bool furi_hal_subghz_ext_set(bool state) {
     furi_hal_subghz.ext_cc1101 = state;
     furi_hal_spi_bus_handle_deinit(furi_hal_subghz.spi_bus_handle);
     if(state) {
@@ -49,7 +49,9 @@ void furi_hal_subghz_ext_set(bool state) {
         furi_hal_subghz.cc1101_g0_pin = &gpio_cc1101_g0;
         furi_hal_spi_bus_handle_init(furi_hal_subghz.spi_bus_handle);
         furi_hal_subghz_init();
+        return false;
     }
+    return true;
 }
 
 void furi_hal_subghz_set_async_mirror_pin(const GpioPin* pin) {

@@ -281,8 +281,9 @@ void furi_hal_subghz_stop_async_tx();
 
 /** Switching between internal and external radio
  * @param      state false - internal, true - external radio
+ * @return     true if switching is successfull
  */
-void furi_hal_subghz_ext_set(bool state);
+bool furi_hal_subghz_ext_set(bool state);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,12.1,,
+Version,+,11.8,,
 Header,+,applications/services/bt/bt_service/bt.h,,
 Header,+,applications/services/cli/cli.h,,
 Header,+,applications/services/cli/cli_vcp.h,,
@@ -1334,7 +1334,7 @@ Function,-,furi_hal_spi_init,void,
 Function,+,furi_hal_spi_init_early,void,
 Function,+,furi_hal_spi_release,void,FuriHalSpiBusHandle*
 Function,-,furi_hal_subghz_dump_state,void,
-Function,+,furi_hal_subghz_ext_set,void,_Bool
+Function,+,furi_hal_subghz_ext_set,_Bool,_Bool
 Function,+,furi_hal_subghz_flush_rx,void,
 Function,+,furi_hal_subghz_flush_tx,void,
 Function,+,furi_hal_subghz_get_lqi,uint8_t,

@@ -57,7 +57,7 @@ void subghz_scene_start_on_enter(void* context) {
         subghz);
     submenu_add_item(
         subghz->submenu,
-        "Radiomodule settings",
+        "Radio settings",
         SubmenuIndexExtSettings,
         subghz_scene_start_submenu_callback,
         subghz);
