@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <toolbox/level_duration.h>
 #include <furi_hal_gpio.h>
+#include <furi_hal_spi_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,6 +61,19 @@ typedef enum {
     SubGhzRegulationOnlyRx, /**only Rx*/
     SubGhzRegulationTxRx, /**TxRx*/
 } SubGhzRegulation;
+
+/** Structure for accessing SubGhz settings*/
+typedef struct {
+    volatile SubGhzState state;
+    volatile SubGhzRegulation regulation;
+    volatile FuriHalSubGhzPreset preset;
+    const GpioPin* async_mirror_pin;
+    bool ext_cc1101;
+    FuriHalSpiBusHandle* spi_bus_handle;
+    const GpioPin* cc1101_g0_pin;
+} FuriHalSubGhz;
+
+extern volatile FuriHalSubGhz furi_hal_subghz;
 
 /* Mirror RX/TX async modulation signal to specified pin
  *
@@ -258,9 +272,10 @@ bool furi_hal_subghz_is_async_tx_complete();
  */
 void furi_hal_subghz_stop_async_tx();
 
-const GpioPin* furi_hal_subghz_get_g0_pin(void);
+/** Switching between internal and external radio
+ * @param      state false - internal, true - external radio
+ */
 void furi_hal_subghz_ext_set(bool state);
-bool furi_hal_subghz_ext_get(void);
 
 #ifdef __cplusplus
 }

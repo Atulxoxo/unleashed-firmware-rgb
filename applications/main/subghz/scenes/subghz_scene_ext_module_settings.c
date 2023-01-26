@@ -26,7 +26,7 @@ void subghz_scene_ext_module_settings_on_enter(void* context) {
 
     VariableItemList* variable_item_list = subghz->variable_item_list;
 
-    value_index = furi_hal_subghz_ext_get();
+    value_index = furi_hal_subghz.ext_cc1101;
     VariableItem* item = variable_item_list_add(
         variable_item_list, "Module", EXT_MODULES_COUNT, subghz_scene_ext_module_changed, subghz);
 

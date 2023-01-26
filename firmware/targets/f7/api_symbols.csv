@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,11.8,,
+Version,+,12.0,,
 Header,+,applications/services/bt/bt_service/bt.h,,
 Header,+,applications/services/cli/cli.h,,
 Header,+,applications/services/cli/cli_vcp.h,,
@@ -1334,11 +1334,10 @@ Function,-,furi_hal_spi_init,void,
 Function,+,furi_hal_spi_init_early,void,
 Function,+,furi_hal_spi_release,void,FuriHalSpiBusHandle*
 Function,-,furi_hal_subghz_dump_state,void,
-Function,+,furi_hal_subghz_ext_get,_Bool,
+
 Function,+,furi_hal_subghz_ext_set,void,_Bool
 Function,+,furi_hal_subghz_flush_rx,void,
 Function,+,furi_hal_subghz_flush_tx,void,
-Function,+,furi_hal_subghz_get_g0_pin,const GpioPin*,
 Function,+,furi_hal_subghz_get_lqi,uint8_t,
 Function,+,furi_hal_subghz_get_rssi,float,
 Function,+,furi_hal_subghz_idle,void,
@@ -4563,6 +4562,7 @@ Variable,+,furi_hal_spi_preset_1edge_low_2m,const LL_SPI_InitTypeDef,
 Variable,+,furi_hal_spi_preset_1edge_low_4m,const LL_SPI_InitTypeDef,
 Variable,+,furi_hal_spi_preset_1edge_low_8m,const LL_SPI_InitTypeDef,
 Variable,+,furi_hal_spi_preset_2edge_low_8m,const LL_SPI_InitTypeDef,
+Variable,+,furi_hal_subghz,volatile FuriHalSubGhz,
 Variable,+,gpio_button_back,const GpioPin,
 Variable,+,gpio_button_down,const GpioPin,
 Variable,+,gpio_button_left,const GpioPin,
