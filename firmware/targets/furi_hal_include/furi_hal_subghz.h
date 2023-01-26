@@ -90,6 +90,13 @@ void furi_hal_subghz_set_async_mirror_pin(const GpioPin* pin);
  */
 void furi_hal_subghz_init();
 
+/** Initialize and switch to power save mode Used by internal API-HAL
+ * initialization routine Can be used to reinitialize device to safe state and
+ * send it to sleep
+ * @return     true if initialisation is successfully 
+ */
+bool furi_hal_subghz_init_test(void);
+
 /** Send device to sleep mode
  */
 void furi_hal_subghz_sleep();

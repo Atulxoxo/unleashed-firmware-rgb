@@ -16,6 +16,8 @@
 #include <stdio.h>
 
 #define TAG "FuriHalSubGhz"
+//Initialisation timeout (ms)
+#define INIT_TIMEOUT 10
 
 static uint32_t furi_hal_subghz_debug_gpio_buff[2];
 
@@ -40,14 +42,27 @@ void furi_hal_subghz_ext_set(bool state) {
         furi_hal_subghz.cc1101_g0_pin = &gpio_cc1101_g0;
     }
     furi_hal_spi_bus_handle_init(furi_hal_subghz.spi_bus_handle);
-    furi_hal_subghz_init();
+    if(furi_hal_subghz_init_test() == false) {
+        //Switching to internal module
+        furi_hal_subghz.ext_cc1101 = false;
+        furi_hal_subghz.spi_bus_handle = &furi_hal_spi_bus_handle_subghz;
+        furi_hal_subghz.cc1101_g0_pin = &gpio_cc1101_g0;
+        furi_hal_spi_bus_handle_init(furi_hal_subghz.spi_bus_handle);
+        furi_hal_subghz_init();
+    }
 }
 
 void furi_hal_subghz_set_async_mirror_pin(const GpioPin* pin) {
     furi_hal_subghz.async_mirror_pin = pin;
 }
 
-void furi_hal_subghz_init() {
+void furi_hal_subghz_init(void) {
+    furi_hal_subghz_init_test();
+}
+
+bool furi_hal_subghz_init_test(void) {
+    bool result = true;
+
     furi_assert(furi_hal_subghz.state == SubGhzStateInit);
     furi_hal_subghz.state = SubGhzStateIdle;
     furi_hal_subghz.preset = FuriHalSubGhzPresetIDLE;
@@ -68,14 +83,22 @@ void furi_hal_subghz_init() {
 
     // GD0 low
     cc1101_write_reg(furi_hal_subghz.spi_bus_handle, CC1101_IOCFG0, CC1101IocfgHW);
-    while(furi_hal_gpio_read(furi_hal_subghz.cc1101_g0_pin) != false)
-        ;
+    uint32_t test_start_time = furi_get_tick();
+    while(furi_hal_gpio_read(furi_hal_subghz.cc1101_g0_pin) != false && result) {
+        if(furi_get_tick() - test_start_time > INIT_TIMEOUT) {
+            result = false;
+        }
+    }
 
     // GD0 high
     cc1101_write_reg(
         &furi_hal_spi_bus_handle_subghz, CC1101_IOCFG0, CC1101IocfgHW | CC1101_IOCFG_INV);
-    while(furi_hal_gpio_read(furi_hal_subghz.cc1101_g0_pin) != true)
-        ;
+    test_start_time = furi_get_tick();
+    while(furi_hal_gpio_read(furi_hal_subghz.cc1101_g0_pin) != true && result) {
+        if(furi_get_tick() - test_start_time > INIT_TIMEOUT) {
+            result = false;
+        }
+    }
 
     // Reset GD0 to floating state
     cc1101_write_reg(furi_hal_subghz.spi_bus_handle, CC1101_IOCFG0, CC1101IocfgHighImpedance);
@@ -89,7 +112,13 @@ void furi_hal_subghz_init() {
     cc1101_shutdown(furi_hal_subghz.spi_bus_handle);
 
     furi_hal_spi_release(furi_hal_subghz.spi_bus_handle);
-    FURI_LOG_I(TAG, "Init OK");
+
+    if(result) {
+        FURI_LOG_I(TAG, "Init OK");
+    } else {
+        FURI_LOG_E(TAG, "Failed to initialization");
+    }
+    return result;
 }
 
 void furi_hal_subghz_sleep() {
