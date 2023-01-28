@@ -62,13 +62,19 @@ typedef enum {
     SubGhzRegulationTxRx, /**TxRx*/
 } SubGhzRegulation;
 
+/** SubGhz radio types */
+typedef enum {
+    SubGhzRadioInternal,
+    SubGhzRadioExternal,
+} SubGhzRadioType;
+
 /** Structure for accessing SubGhz settings*/
 typedef struct {
     volatile SubGhzState state;
     volatile SubGhzRegulation regulation;
     volatile FuriHalSubGhzPreset preset;
     const GpioPin* async_mirror_pin;
-    bool ext_cc1101;
+    SubGhzRadioType radio_type;
     FuriHalSpiBusHandle* spi_bus_handle;
     const GpioPin* cc1101_g0_pin;
 } FuriHalSubGhz;
@@ -280,10 +286,15 @@ bool furi_hal_subghz_is_async_tx_complete();
 void furi_hal_subghz_stop_async_tx();
 
 /** Switching between internal and external radio
- * @param      state false - internal, true - external radio
+ * @param      state SubGhzRadioInternal or SubGhzRadioExternal
  * @return     true if switching is successfull
  */
-bool furi_hal_subghz_ext_set(bool state);
+bool furi_hal_subghz_set_radio_type(SubGhzRadioType state);
+
+/** Get current radio
+ * @return     SubGhzRadioInternal or SubGhzRadioExternal
+ */
+SubGhzRadioType furi_hal_subghz_get_radio_type(void);
 
 #ifdef __cplusplus
 }

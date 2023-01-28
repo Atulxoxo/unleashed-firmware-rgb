@@ -26,13 +26,13 @@ volatile FuriHalSubGhz furi_hal_subghz = {
     .regulation = SubGhzRegulationTxRx,
     .preset = FuriHalSubGhzPresetIDLE,
     .async_mirror_pin = NULL,
-    .ext_cc1101 = false,
+    .radio_type = SubGhzRadioInternal,
     .spi_bus_handle = &furi_hal_spi_bus_handle_subghz,
     .cc1101_g0_pin = &gpio_cc1101_g0,
 };
 
-bool furi_hal_subghz_ext_set(bool state) {
-    furi_hal_subghz.ext_cc1101 = state;
+bool furi_hal_subghz_set_radio_type(SubGhzRadioType state) {
+    furi_hal_subghz.radio_type = state;
     furi_hal_spi_bus_handle_deinit(furi_hal_subghz.spi_bus_handle);
     if(state) {
         furi_hal_subghz.spi_bus_handle = &furi_hal_spi_bus_handle_subghz_ext;
@@ -44,7 +44,7 @@ bool furi_hal_subghz_ext_set(bool state) {
     furi_hal_spi_bus_handle_init(furi_hal_subghz.spi_bus_handle);
     if(furi_hal_subghz_init_test() == false) {
         //Switching to internal module
-        furi_hal_subghz.ext_cc1101 = false;
+        furi_hal_subghz.radio_type = SubGhzRadioInternal;
         furi_hal_subghz.spi_bus_handle = &furi_hal_spi_bus_handle_subghz;
         furi_hal_subghz.cc1101_g0_pin = &gpio_cc1101_g0;
         furi_hal_spi_bus_handle_init(furi_hal_subghz.spi_bus_handle);
@@ -52,6 +52,10 @@ bool furi_hal_subghz_ext_set(bool state) {
         return false;
     }
     return true;
+}
+
+SubGhzRadioType furi_hal_subghz_get_radio_type(void) {
+    return furi_hal_subghz.radio_type;
 }
 
 void furi_hal_subghz_set_async_mirror_pin(const GpioPin* pin) {
