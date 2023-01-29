@@ -101,7 +101,7 @@ void furi_hal_subghz_init();
  * send it to sleep
  * @return     true if initialisation is successfully 
  */
-bool furi_hal_subghz_init_test(void);
+bool furi_hal_subghz_init_check(void);
 
 /** Send device to sleep mode
  */
@@ -287,7 +287,7 @@ void furi_hal_subghz_stop_async_tx();
 
 /** Switching between internal and external radio
  * @param      state SubGhzRadioInternal or SubGhzRadioExternal
- * @return     true if switching is successfull
+ * @return     true if switching is successful
  */
 bool furi_hal_subghz_set_radio_type(SubGhzRadioType state);
 
@@ -295,6 +295,11 @@ bool furi_hal_subghz_set_radio_type(SubGhzRadioType state);
  * @return     SubGhzRadioInternal or SubGhzRadioExternal
  */
 SubGhzRadioType furi_hal_subghz_get_radio_type(void);
+
+/** Check for a radio module
+ * @return     true if check is successful
+ */
+bool furi_hal_subghz_check_radio(void);
 
 #ifdef __cplusplus
 }

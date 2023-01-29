@@ -79,7 +79,17 @@ bool subghz_scene_start_on_event(void* context, SceneManagerEvent event) {
         view_dispatcher_stop(subghz->view_dispatcher);
         return true;
     } else if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == SubmenuIndexReadRAW) {
+        if(event.event == SubmenuIndexExtSettings) {
+            scene_manager_set_scene_state(
+                subghz->scene_manager, SubGhzSceneStart, SubmenuIndexExtSettings);
+            scene_manager_next_scene(subghz->scene_manager, SubGhzSceneExtModuleSettings);
+            return true;
+
+        } else if(!furi_hal_subghz_check_radio()) {
+            furi_string_set(subghz->error_str, "Please connect\nexternal radio");
+            scene_manager_next_scene(subghz->scene_manager, SubGhzSceneShowErrorSub);
+            return true;
+        } else if(event.event == SubmenuIndexReadRAW) {
             scene_manager_set_scene_state(
                 subghz->scene_manager, SubGhzSceneStart, SubmenuIndexReadRAW);
             subghz->txrx->rx_key_state = SubGhzRxKeyStateIDLE;
@@ -106,12 +116,6 @@ bool subghz_scene_start_on_event(void* context, SceneManagerEvent event) {
             scene_manager_next_scene(subghz->scene_manager, SubGhzSceneFrequencyAnalyzer);
             DOLPHIN_DEED(DolphinDeedSubGhzFrequencyAnalyzer);
             return true;
-        } else if(event.event == SubmenuIndexExtSettings) {
-            scene_manager_set_scene_state(
-                subghz->scene_manager, SubGhzSceneStart, SubmenuIndexExtSettings);
-            scene_manager_next_scene(subghz->scene_manager, SubGhzSceneExtModuleSettings);
-            return true;
-
         } else if(event.event == SubmenuIndexTest) {
             scene_manager_set_scene_state(
                 subghz->scene_manager, SubGhzSceneStart, SubmenuIndexTest);
