@@ -389,9 +389,11 @@ uint8_t furi_hal_subghz_get_lqi() {
  */
 
 bool furi_hal_subghz_is_frequency_valid(uint32_t value) {
-    if(!(value >= 281000000 && value <= 361000000) &&
-       !(value >= 378000000 && value <= 481000000) &&
-       !(value >= 749000000 && value <= 962000000)) {
+    if((!(value >= 281000000 && value <= 361000000) &&
+        !(value >= 378000000 && value <= 481000000) &&
+        !(value >= 749000000 && value <= 962000000)) ||
+       ((furi_hal_subghz.radio_type == SubGhzRadioExternal) &&
+        (value >= 311900000 && value <= 312200000))) {
         return false;
     }
 
