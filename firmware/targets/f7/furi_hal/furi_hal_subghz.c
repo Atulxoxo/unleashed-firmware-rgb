@@ -6,6 +6,7 @@
 #include <furi_hal_spi.h>
 #include <furi_hal_interrupt.h>
 #include <furi_hal_resources.h>
+#include <furi_hal_power.h>
 
 #include <stm32wbxx_ll_dma.h>
 
@@ -20,6 +21,7 @@
 #define INIT_TIMEOUT 10
 
 static uint32_t furi_hal_subghz_debug_gpio_buff[2];
+static bool last_OTG_state = false;
 
 volatile FuriHalSubGhz furi_hal_subghz = {
     .state = SubGhzStateInit,
@@ -58,9 +60,23 @@ void furi_hal_subghz_init(void) {
     furi_hal_subghz_init_check();
 }
 
-bool furi_hal_subghz_check_radio(void) {
-    bool result = true;
+void furi_hal_subghz_enable_ext_power(void) {
+    if(furi_hal_subghz.radio_type != SubGhzRadioInternal && !furi_hal_power_is_otg_enabled()) {
+        furi_hal_power_enable_otg();
+    }
+}
 
+void furi_hal_subghz_disable_ext_power(void) {
+    if(furi_hal_subghz.radio_type != SubGhzRadioInternal && !last_OTG_state) {
+        furi_hal_power_disable_otg();
+    }
+}
+
+bool furi_hal_subghz_check_radio(void) {
+    if(furi_hal_subghz.radio_type == SubGhzRadioInternal) return true;
+
+    bool result = true;
+    furi_hal_subghz_enable_ext_power();
     furi_hal_spi_acquire(furi_hal_subghz.spi_bus_handle);
 
     // Reset
@@ -107,6 +123,7 @@ bool furi_hal_subghz_check_radio(void) {
         FURI_LOG_D(TAG, "Radio check ok");
     } else {
         FURI_LOG_D(TAG, "Radio check failed");
+        furi_hal_subghz_disable_ext_power();
     }
     return result;
 }
@@ -118,6 +135,8 @@ bool furi_hal_subghz_init_check(void) {
     furi_hal_subghz.state = SubGhzStateIdle;
     furi_hal_subghz.preset = FuriHalSubGhzPresetIDLE;
 
+    last_OTG_state = furi_hal_power_is_otg_enabled();
+    furi_hal_subghz_enable_ext_power();
     furi_hal_spi_acquire(furi_hal_subghz.spi_bus_handle);
 
 #ifdef FURI_HAL_SUBGHZ_TX_GPIO
@@ -168,6 +187,7 @@ bool furi_hal_subghz_init_check(void) {
         FURI_LOG_I(TAG, "Init OK");
     } else {
         FURI_LOG_E(TAG, "Failed to initialization");
+        furi_hal_subghz_disable_ext_power();
     }
     return result;
 }
@@ -184,6 +204,8 @@ void furi_hal_subghz_sleep() {
     cc1101_shutdown(furi_hal_subghz.spi_bus_handle);
 
     furi_hal_spi_release(furi_hal_subghz.spi_bus_handle);
+
+    furi_hal_subghz_disable_ext_power();
 
     furi_hal_subghz.preset = FuriHalSubGhzPresetIDLE;
 }
@@ -329,6 +351,7 @@ void furi_hal_subghz_shutdown() {
     // Reset and shutdown
     cc1101_shutdown(furi_hal_subghz.spi_bus_handle);
     furi_hal_spi_release(furi_hal_subghz.spi_bus_handle);
+    furi_hal_subghz_disable_ext_power();
 }
 
 void furi_hal_subghz_reset() {
