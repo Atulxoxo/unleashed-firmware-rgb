@@ -118,7 +118,10 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
         // First stage: coarse scan
         for(size_t i = 0; i < subghz_setting_get_frequency_count(instance->setting); i++) {
             if(furi_hal_subghz_is_frequency_valid(
-                   subghz_setting_get_frequency(instance->setting, i))) {
+                   subghz_setting_get_frequency(instance->setting, i)) &&
+               !((furi_hal_subghz.radio_type == SubGhzRadioExternal) &&
+                 (subghz_setting_get_frequency(instance->setting, i) >= 311900000 &&
+                  subghz_setting_get_frequency(instance->setting, i) <= 312200000))) {
                 furi_hal_spi_acquire(furi_hal_subghz.spi_bus_handle);
                 cc1101_switch_to_idle(furi_hal_subghz.spi_bus_handle);
                 frequency = cc1101_set_frequency(
