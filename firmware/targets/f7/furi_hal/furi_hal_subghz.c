@@ -73,57 +73,20 @@ void furi_hal_subghz_disable_ext_power(void) {
 }
 
 bool furi_hal_subghz_check_radio(void) {
-    if(furi_hal_subghz.radio_type == SubGhzRadioInternal) return true;
-
     bool result = true;
+
     furi_hal_subghz_enable_ext_power();
+
     furi_hal_spi_acquire(furi_hal_subghz.spi_bus_handle);
-
-    // Reset
-    furi_hal_gpio_init(furi_hal_subghz.cc1101_g0_pin, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
-    cc1101_reset(furi_hal_subghz.spi_bus_handle);
-    cc1101_write_reg(furi_hal_subghz.spi_bus_handle, CC1101_IOCFG0, CC1101IocfgHighImpedance);
-
-    // Prepare GD0 for power on self test
-    furi_hal_gpio_init(furi_hal_subghz.cc1101_g0_pin, GpioModeInput, GpioPullNo, GpioSpeedLow);
-
-    // GD0 low
-    cc1101_write_reg(furi_hal_subghz.spi_bus_handle, CC1101_IOCFG0, CC1101IocfgHW);
-    uint32_t test_start_time = furi_get_tick();
-    while(furi_hal_gpio_read(furi_hal_subghz.cc1101_g0_pin) != false && result) {
-        if(furi_get_tick() - test_start_time > INIT_TIMEOUT) {
-            result = false;
-        }
-    }
-
-    // GD0 high
-    cc1101_write_reg(
-        &furi_hal_spi_bus_handle_subghz, CC1101_IOCFG0, CC1101IocfgHW | CC1101_IOCFG_INV);
-    test_start_time = furi_get_tick();
-    while(furi_hal_gpio_read(furi_hal_subghz.cc1101_g0_pin) != true && result) {
-        if(furi_get_tick() - test_start_time > INIT_TIMEOUT) {
-            result = false;
-        }
-    }
-
-    // Reset GD0 to floating state
-    cc1101_write_reg(furi_hal_subghz.spi_bus_handle, CC1101_IOCFG0, CC1101IocfgHighImpedance);
-    furi_hal_gpio_init(furi_hal_subghz.cc1101_g0_pin, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
-
-    // RF switches
-    furi_hal_gpio_init(&gpio_rf_sw_0, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
-    cc1101_write_reg(furi_hal_subghz.spi_bus_handle, CC1101_IOCFG2, CC1101IocfgHW);
-
-    // Go to sleep
-    cc1101_shutdown(furi_hal_subghz.spi_bus_handle);
-
+    uint8_t ver = cc1101_get_version(furi_hal_subghz.spi_bus_handle);
     furi_hal_spi_release(furi_hal_subghz.spi_bus_handle);
 
-    if(result) {
+    if((ver != 0) && (ver != 255)) {
         FURI_LOG_D(TAG, "Radio check ok");
     } else {
         FURI_LOG_D(TAG, "Radio check failed");
         furi_hal_subghz_disable_ext_power();
+        result = false;
     }
     return result;
 }
