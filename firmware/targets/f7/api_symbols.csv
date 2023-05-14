@@ -1486,6 +1486,7 @@ Function,+,furi_hal_version_get_model_name,const char*,
 Function,+,furi_hal_version_get_name_ptr,const char*,
 Function,+,furi_hal_version_get_otp_version,FuriHalVersionOtpVersion,
 Function,-,furi_hal_version_init,void,
+Function,-,furi_hal_version_set_name,void,const char*
 Function,+,furi_hal_version_uid,const uint8_t*,
 Function,+,furi_hal_version_uid_size,size_t,
 Function,-,furi_hal_vibro_init,void,
@@ -2703,7 +2704,8 @@ Function,+,subghz_block_generic_get_preset_name,void,"const char*, FuriString*"
 Function,+,subghz_block_generic_serialize,SubGhzProtocolStatus,"SubGhzBlockGeneric*, FlipperFormat*, SubGhzRadioPreset*"
 Function,-,subghz_custom_btn_get,uint8_t,
 Function,-,subghz_custom_btn_get_original,uint8_t,
-Function,-,subghz_custom_btn_set,void,uint8_t
+Function,-,subghz_custom_btn_is_allowed,_Bool,
+Function,-,subghz_custom_btn_set,_Bool,uint8_t
 Function,-,subghz_custom_btn_set_max,void,uint8_t
 Function,-,subghz_custom_btn_set_original,void,uint8_t
 Function,-,subghz_custom_btns_reset,void,
@@ -3399,6 +3401,7 @@ Function,+,text_input_get_validator_callback_context,void*,TextInput*
 Function,+,text_input_get_view,View*,TextInput*
 Function,+,text_input_reset,void,TextInput*
 Function,+,text_input_set_header_text,void,"TextInput*, const char*"
+Function,+,text_input_set_minimum_length,void,"TextInput*, size_t"
 Function,+,text_input_set_result_callback,void,"TextInput*, TextInputCallback, void*, char*, size_t, _Bool"
 Function,+,text_input_set_validator,void,"TextInput*, TextInputValidatorCallback, void*"
 Function,-,tga_save,void,const char*
@@ -4595,6 +4598,7 @@ Function,+,version_get_gitbranchnum,const char*,const Version*
 Function,+,version_get_githash,const char*,const Version*
 Function,+,version_get_target,uint8_t,const Version*
 Function,+,version_get_version,const char*,const Version*
+Function,-,version_set_custom_name,void,"Version*, const char*"
 Function,-,vfiprintf,int,"FILE*, const char*, __gnuc_va_list"
 Function,-,vfiscanf,int,"FILE*, const char*, __gnuc_va_list"
 Function,-,vfprintf,int,"FILE*, const char*, __gnuc_va_list"
